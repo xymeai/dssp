@@ -1,0 +1,38 @@
+[build-system]
+requires = ["scikit-build-core>=0.10"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "dssp"
+version = "4.6.1"
+description = "DSSP - Dictionary of Protein Secondary Structure"
+license = {text = "BSD-2-Clause"}
+requires-python = ">=3.12"
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+
+[project.urls]
+Home = "https://github.com/xymeai/dssp"
+Upstream = "https://github.com/PDB-REDO/dssp"
+
+[tool.scikit-build]
+cmake.build-type = "Release"
+cmake.args = [
+    "-DBUILD_PYTHON_MODULE=ON",
+    "-DBUILD_TESTING=OFF",
+    "-DBUILD_DOCUMENTATION=OFF",
+]
+wheel.install-dir = "."
+
+[[tool.uv.index]]
+name = "xyme-pypi"
+url = "https://pypi.prd.xyme.cloud/"
+publish-url = "https://pypi.prd.xyme.cloud/"
+default = true

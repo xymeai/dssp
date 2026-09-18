@@ -1,0 +1,85 @@
+name: Build Wheels
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish wheels to PyPI"
+        required: false
+        type: boolean
+        default: false
+  push:
+    branches:
+      - trunk
+      - feature/python-wheels
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - python-version: "3.12"
+            cibw-build: "cp312-manylinux_x86_64"
+          - python-version: "3.13"
+            cibw-build: "cp313-manylinux_x86_64"
+          - python-version: "3.14"
+            cibw-build: "cp314-manylinux_x86_64"
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false  # CPM fetches deps at build time
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
+
+      - name: Build wheels with cibuildwheel
+        uses: pypa/cibuildwheel@v2.21
+        env:
+          CIBW_BUILD: ${{ matrix.cibw-build }}
+          CIBW_ARCHS: "x86_64"
+        with:
+          output-dir: wheelhouse
+          config-file: cibuildwheel.toml
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-linux-py${{ matrix.python-version }}
+          path: wheelhouse/*.whl
+
+  publish:
+    needs: [build-linux]
+    runs-on: xcp-medium-4g
+    if: github.event.inputs.publish == 'true'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all wheels
+        uses: actions/download-artifact@v4
+        with:
+          path: wheels
+
+      - name: Flatten wheel directory
+        run: |
+          mkdir -p final-wheels
+          find wheels -name "*.whl" -exec cp {} final-wheels/ \;
+          echo "Wheels to publish:"
+          ls -la final-wheels/
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Publish wheels to private PyPI
+        run: |
+          uv publish final-wheels/*.whl --index xyme-pypi --username "test"
