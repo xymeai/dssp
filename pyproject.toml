@@ -1,0 +1,50 @@
+[build-system]
+requires = ["scikit-build-core>=0.10"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "dssp"
+version = "4.6.1"
+description = "DSSP - Dictionary of Protein Secondary Structure"
+license = {text = "BSD-2-Clause"}
+requires-python = ">=3.12"
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+
+[project.urls]
+Home = "https://github.com/xymeai/dssp"
+Upstream = "https://github.com/PDB-REDO/dssp"
+
+[tool.scikit-build]
+cmake.build-type = "Release"
+cmake.args = [
+    "-DBUILD_PYTHON_MODULE=ON",
+    "-DBUILD_TESTING=OFF",
+    "-DBUILD_DOCUMENTATION=OFF",
+]
+wheel.install-dir = "."
+
+[tool.cibuildwheel]
+build = "cp312-* cp313-* cp314-*"
+skip = "*-win* *-musllinux* *i686* *-macos*"
+enable = ["cpython-prerelease"]
+test-command = "python -c \"from mkdssp import dssp; print('mkdssp OK')\""
+
+[tool.cibuildwheel.linux]
+archs = ["x86_64"]
+manylinux-x86_64-image = "manylinux_2_28"
+before-all = "pip install cmake"
+before-build = "bash {project}/scripts/build-boost.sh 1.86.0"
+
+[tool.cibuildwheel.linux.environment]
+BOOST_ROOT = "/usr/local"
+CMAKE_PREFIX_PATH = "/usr/local"
+CFLAGS = "-march=x86-64-v3"
+CXXFLAGS = "-march=x86-64-v3"

@@ -28,13 +28,13 @@ if(CMAKE_VERSION GREATER_EQUAL 3.30)
     cmake_policy(SET CMP0167 NEW)
 endif()
 
-find_package(Python 3.13 REQUIRED COMPONENTS Interpreter Development)
+find_package(Python 3.12 REQUIRED COMPONENTS Interpreter Development)
 
 if(NOT EXISTS ${Python_LIBRARIES})
     message(FATAL_ERROR "The python library ${Python_LIBRARIES} does not seem to exist?")
 endif()
 
-find_package(Boost 1.86 REQUIRED COMPONENTS python)
+find_package(Boost 1.83 REQUIRED COMPONENTS python)
 
 # ---------
 add_library(mkdssp_module SHARED dssp-python-plugin.cpp)
@@ -59,7 +59,15 @@ if(WIN32)
         SUFFIX ".pyd"
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-    install(TARGETS mkdssp_module RUNTIME DESTINATION "${Python_SITELIB}")
+    if(SKBUILD)
+        install(TARGETS mkdssp_module RUNTIME DESTINATION .)
+    else()
+        install(TARGETS mkdssp_module RUNTIME DESTINATION "${Python_SITELIB}")
+    endif()
 else()
-    install(TARGETS mkdssp_module LIBRARY DESTINATION "${Python_SITELIB}")
+    if(SKBUILD)
+        install(TARGETS mkdssp_module LIBRARY DESTINATION .)
+    else()
+        install(TARGETS mkdssp_module LIBRARY DESTINATION "${Python_SITELIB}")
+    endif()
 endif()
