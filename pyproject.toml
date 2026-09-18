@@ -31,8 +31,20 @@ cmake.args = [
 ]
 wheel.install-dir = "."
 
-[[tool.uv.index]]
-name = "xyme-pypi"
-url = "https://pypi.prd.xyme.cloud/"
-publish-url = "https://pypi.prd.xyme.cloud/"
-default = true
+[tool.cibuildwheel]
+build = "cp312-* cp313-* cp314-*"
+skip = "*-win* *-musllinux* *i686* *-macos*"
+enable = ["cpython-prerelease"]
+test-command = "python -c \"from mkdssp import dssp; print('mkdssp OK')\""
+
+[tool.cibuildwheel.linux]
+archs = ["x86_64"]
+manylinux-x86_64-image = "manylinux_2_28"
+before-all = "pip install cmake"
+before-build = "bash {project}/scripts/build-boost.sh 1.86.0"
+
+[tool.cibuildwheel.linux.environment]
+BOOST_ROOT = "/usr/local"
+CMAKE_PREFIX_PATH = "/usr/local"
+CFLAGS = "-march=x86-64-v3"
+CXXFLAGS = "-march=x86-64-v3"
